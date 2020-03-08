@@ -183,8 +183,8 @@ CTclAppCanvas::
 setModifiers(bool shift_key, bool control_key, bool mod_key)
 {
   shift_key_   = shift_key;
-  control_key_ = control_key_;
-  mod_key_     = mod_key_;
+  control_key_ = control_key;
+  mod_key_     = mod_key;
 }
 
 void
