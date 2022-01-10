@@ -14,6 +14,7 @@ all: dirs $(LIB_DIR)/libCTclApp.a
 dirs:
 	@if [ ! -e ../obj ]; then mkdir ../obj; fi
 	@if [ ! -e ../lib ]; then mkdir ../lib; fi
+	@if [ ! -e ../bin ]; then mkdir ../bin; fi
 
 SRC = \
 CTclApp.cpp \
