@@ -1,25 +1,35 @@
 #include <CTclAppI.h>
 
+#include <tcl.h>
+
 CTclAppCommand::
 CTclAppCommand(CTclApp *app, const std::string &name) :
  app_(app), name_(name)
 {
-  Tcl_CreateCommand(app->getInterp(), (char *) name_.c_str(),
+  Tcl_CreateCommand(app_->getInterp(), name_.c_str(),
                     (Tcl_CmdProc *) &CTclAppCommand::commandProc,
-                    (ClientData) this, nullptr);
+                    (ClientData) this, (Tcl_CmdDeleteProc *) nullptr);
+}
+
+CTclAppCommand::
+~CTclAppCommand()
+{
+  Tcl_DeleteCommand(app_->getInterp(), name_.c_str());
 }
 
 int
 CTclAppCommand::
 commandProc(ClientData clientData, Tcl_Interp *interp, int argc, const char **argv)
 {
-  CTclAppCommand *command = (CTclAppCommand *) clientData;
+  auto *command = static_cast<CTclAppCommand *>(clientData);
 
   if (! command->proc(argc, argv))
     return TCL_ERROR;
 
   return TCL_OK;
 }
+
+//---
 
 void
 CTclAppCommand::
@@ -39,7 +49,9 @@ void
 CTclAppCommand::
 setStringResult(const std::string &value)
 {
-  Tcl_SetResult(app_->getInterp(), (char *) value.c_str(), nullptr);
+  auto *sobj = Tcl_NewStringObj(value.c_str(), int(value.size()));
+
+  setObjResult(sobj);
 }
 
 void
@@ -110,19 +122,27 @@ void
 CTclAppCommand::
 setStringArrayResult(const std::vector<std::string> &values)
 {
-  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+  auto *obj = Tcl_NewListObj(0, nullptr);
 
   int num_values = values.size();
 
   for (int i = 0; i < num_values; ++i) {
-    Tcl_Obj *sobj =
-      Tcl_NewStringObj((char *) values[i].c_str(), (int) values[i].size());
+    auto *sobj = Tcl_NewStringObj(values[i].c_str(), int(values[i].size()));
 
     Tcl_ListObjAppendElement(app_->getInterp(), obj, sobj);
   }
 
-  Tcl_SetObjResult(app_->getInterp(), obj);
+  setObjResult(obj);
 }
+
+void
+CTclAppCommand::
+setObjResult(Tcl_Obj *obj)
+{
+  app_->setObjResult(obj);
+}
+
+//---
 
 void
 CTclAppCommand::
@@ -145,23 +165,46 @@ setStringVar(const std::string &name, const std::string &value)
   app_->setStringVar(name, value);
 }
 
+void
+CTclAppCommand::
+setBoolVar(const std::string &name, bool b)
+{
+  app_->setBoolVar(name, b);
+}
+
+//---
+
 int
 CTclAppCommand::
-getIntegerVar(const std::string &name)
+getIntegerVar(const std::string &name) const
 {
   return app_->getIntegerVar(name);
 }
 
 double
 CTclAppCommand::
-getRealVar(const std::string &name)
+getRealVar(const std::string &name) const
 {
   return app_->getRealVar(name);
 }
 
 std::string
 CTclAppCommand::
-getStringVar(const std::string &name)
+getStringVar(const std::string &name) const
 {
   return app_->getStringVar(name);
+}
+
+bool
+CTclAppCommand::
+getBoolVar(const std::string &name) const
+{
+  return app_->getBoolVar(name);
+}
+
+bool
+CTclAppCommand::
+getStringArrayVar(const std::string &name, std::vector<std::string> &strs) const
+{
+  return app_->getStringArrayVar(name, strs);
 }

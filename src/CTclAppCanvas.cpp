@@ -232,7 +232,7 @@ getKeyEvent() const
 static int
 CTclAppCanvasClassCmd(ClientData clientData, Tcl_Interp *tcl_interp, int argc, const char **argv)
 {
-  CTclAppCanvasCmd *cmd = (CTclAppCanvasCmd *) clientData;
+  auto *cmd = static_cast<CTclAppCanvasCmd *>(clientData);
 
   if (argc < 2) {
     Tcl_AppendResult(tcl_interp, "wrong # args: should be \"",
@@ -246,7 +246,9 @@ CTclAppCanvasClassCmd(ClientData clientData, Tcl_Interp *tcl_interp, int argc, c
   if (! tk_window)
     return TCL_ERROR;
 
-  CTclAppCanvas *canvas = cmd->createInstance(cmd->getTclApp());
+  auto *tclApp = cmd->getTclApp();
+
+  auto *canvas = cmd->createInstance(tclApp);
 
   canvas->setTkWindow(tk_window);
 
@@ -276,15 +278,14 @@ CTclAppCanvasClassCmd(ClientData clientData, Tcl_Interp *tcl_interp, int argc, c
 
   canvas->setTclInstanceCommand(tcl_instance_command);
 
-  if (CTclAppCanvasConfigureProc
-       (tcl_interp, canvas, argc, argv, 0) != TCL_OK) {
+  if (CTclAppCanvasConfigureProc(tcl_interp, canvas, argc, argv, 0) != TCL_OK) {
     Tk_DestroyWindow(tk_window);
     return TCL_ERROR;
   }
 
-  Tcl_SetObjResult(tcl_interp, Tcl_NewStringObj(Tk_PathName(tk_window), -1));
+  tclApp->setObjResult(Tcl_NewStringObj(Tk_PathName(tk_window), -1));
 
-  cmd->initInstance(cmd->getTclApp());
+  cmd->initInstance(tclApp);
 
   return TCL_OK;
 }

@@ -4,6 +4,9 @@
 #include <CTclApp.h>
 #include <CEvent.h>
 
+#include <tcl.h>
+#include <tk.h>
+
 class  CTclAppCanvas;
 struct CTclAppCanvasConfigData;
 
@@ -123,7 +126,7 @@ class CTclAppCanvas {
 
  private:
   CTclApp*                 app_                  { nullptr };
-  Tcl_Command              tcl_instance_command_ { 0 };
+  Tcl_Command              tcl_instance_command_ { nullptr };
   Tk_Window                tk_window_            { 0 };
   Display*                 display_              { nullptr };
   CTclAppCanvasConfigData* config_data_          { nullptr };
